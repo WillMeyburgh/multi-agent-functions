@@ -1,10 +1,11 @@
 from typing import List
 from langchain_core.tools import create_schema_from_function, BaseTool, StructuredTool
+from datetime import datetime
 
-from multi_agent_functions.google.calender.client import GoogleCalendarClient
-from multi_agent_functions.google.calender.model.events import Event
-from multi_agent_functions.google.calender.model.calender_list import CalendarListEntry
-from multi_agent_functions.google.calender.state import GoogleCalendarAgentState
+from multi_agent_functions.v1.google.calender.client import GoogleCalendarClient
+from multi_agent_functions.v1.google.calender.model.events import Event
+from multi_agent_functions.v1.google.calender.model.calender_list import CalendarListEntry
+from multi_agent_functions.v1.google.calender.state import GoogleCalendarAgentState
 
 class GoogleCalendarToolkit:
     def __init__(self):
@@ -24,10 +25,17 @@ class GoogleCalendarToolkit:
         state['calendars'] = self.client.calendar_list_list()
         return state
 
+    def get_current_time(self) -> str:
+        """
+        Returns the current date and time.
+        """
+        return datetime.now().isoformat()
+
     def get_tools(self) -> List[BaseTool]:
         return list(map(
             StructuredTool.from_function,
             [
+                self.get_current_time,
                 Event.from_dict,
                 CalendarListEntry.from_dict,
                 Event.to_dict,

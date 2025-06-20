@@ -4,9 +4,9 @@ from langchain_core.messages import BaseMessage
 from langgraph.graph.state import CompiledStateGraph
 from langgraph.prebuilt import create_react_agent
 
-from multi_agent_functions.google.tasks.state import GoogleTasksAgentState
-from multi_agent_functions.google.tasks.system_prompt import SYSTEM_PROMPT
-from multi_agent_functions.google.tasks.toolkit import GoogleTasksToolkit
+from multi_agent_functions.v1.google.tasks.state import GoogleTasksAgentState
+from multi_agent_functions.v1.google.tasks.system_prompt import SYSTEM_PROMPT
+from multi_agent_functions.v1.google.tasks.toolkit import GoogleTasksToolkit
 
 
 class GoogleTasksAgent():

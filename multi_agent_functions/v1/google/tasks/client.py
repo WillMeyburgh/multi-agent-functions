@@ -8,8 +8,8 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 from time import sleep # Added for potential delays
 
-from multi_agent_functions.google.tasks.model.task import Task
-from multi_agent_functions.google.tasks.model.tasklist import TaskList
+from multi_agent_functions.v1.google.tasks.model.task import Task
+from multi_agent_functions.v1.google.tasks.model.tasklist import TaskList
 
 class GoogleTasksClient:
     def __init__(self):

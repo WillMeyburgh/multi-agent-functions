@@ -21,6 +21,7 @@ When a user asks you to perform a task, identify the appropriate tool(s) to use 
 
 Example interactions:
 - User: "List my task lists." -> Use `client.tasklists_list`
+- User: "List tasks in 'My List'." -> Use `list_tasks_and_update_state` with the appropriate tasklist_id.
 - User: "Create a new task list called 'Groceries'." -> Use `client.tasklists_insert`
 - User: "Add 'Buy milk' to my 'Groceries' list." -> First, find the 'Groceries' task list using `client.tasklists_list`, then use `client.tasks_insert`
 - User: "Mark 'Buy milk' as completed in 'Groceries'." -> First, find the task and task list, then use `client.tasks_patch` or `client.tasks_update` to change the status.

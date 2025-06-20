@@ -4,9 +4,9 @@ from langchain_core.messages import BaseMessage
 from langgraph.graph.state import CompiledStateGraph
 from langgraph.prebuilt import create_react_agent
 
-from multi_agent_functions.google.calender.state import GoogleCalendarAgentState
-from multi_agent_functions.google.calender.system_prompt import SYSTEM_PROMPT
-from multi_agent_functions.google.calender.toolkit import GoogleCalendarToolkit
+from multi_agent_functions.v1.google.calender.state import GoogleCalendarAgentState
+from multi_agent_functions.v1.google.calender.system_prompt import SYSTEM_PROMPT
+from multi_agent_functions.v1.google.calender.toolkit import GoogleCalendarToolkit
 
 
 class GoogleCalendarAgent():

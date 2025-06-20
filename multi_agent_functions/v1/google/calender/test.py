@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
-from multi_agent_functions.google.calender.client import GoogleCalendarClient
-from multi_agent_functions.google.calender.model.events import Event
+from multi_agent_functions.v1.google.calender.client import GoogleCalendarClient
+from multi_agent_functions.v1.google.calender.model.events import Event
 
 def main():
     client = GoogleCalendarClient()
