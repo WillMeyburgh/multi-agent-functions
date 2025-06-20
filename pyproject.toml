@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "multi_agent_functions"
+version = "0.1.0"
+description = ""
+authors = ["Will Meyburgh <annekinmeyburgh@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+sqlalchemy = "^2.0.41"
+langgraph = "^0.4.8"
+langchain-google-genai = "^2.1.5"
+langchain = "^0.3.25"
+python-dotenv = "^1.1.0"
+google-api-python-client = "^2.172.0"
+google-auth-oauthlib = "^1.2.2"
+python-dateutil = "^2.9.0"
+langgraph-supervisor = "^0.0.27"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
