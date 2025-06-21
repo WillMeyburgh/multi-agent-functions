@@ -9,7 +9,7 @@ from langchain_core.messages import BaseMessage
 from langchain_core.outputs import ChatGenerationChunk, ChatResult
 
 # Import the specific exceptions to catch
-from google.api_core.exceptions import InternalServerError, ResourceExhausted
+from google.api_core.exceptions import InternalServerError, ResourceExhausted, GoogleAPICallError
 
 class RateLimitedModel(BaseChatModel):
     """A wrapper around a chat model that adds a delay after InternalServerError."""
@@ -23,20 +23,33 @@ class RateLimitedModel(BaseChatModel):
         # request_timestamps and _wait_for_rate_limit are removed
 
 
+
     def _generate(
         self,
         messages: List[BaseMessage],
         stop: Optional[List[str]] = None,
         run_manager: CallbackManagerForLLMRun | None = None,
+        count=0,
         **kwargs: Any,
     ) -> ChatResult:
         """Generate chat response with a delay after InternalServerError."""
         try:
-            return self.model.generate(messages, stop=stop, callbacks=run_manager, **kwargs)
-        except (InternalServerError, ResourceExhausted) as e:
-            print(f"API error encountered: {e}. Sleeping for 60 seconds before re-raising.")
+            return self.model._generate(messages, stop=stop, run_manager=run_manager, **kwargs)
+        except GoogleAPICallError as e:
+            print("BARE", e.message)
+            if 'retry_daly' not in e.message:
+                raise e
+            print(f"API error encountered: {e.message[:40]}. Sleeping for 60 seconds before re-raising.")
             time.sleep(60) # Sleep for 1 minute
-            raise e # Re-raise the exception
+            if count >= 3:
+                raise e
+            return self._generate(
+            messages, 
+            stop=stop, 
+            run_manager=run_manager, 
+            count=count+1,
+            **kwargs
+            )
 
 
     def _stream(
@@ -44,15 +57,26 @@ class RateLimitedModel(BaseChatModel):
         messages: List[BaseMessage],
         stop: Optional[List[str]] = None,
         run_manager: CallbackManagerForLLMRun | None = None,
+        count=0,
         **kwargs: Any,
     ) -> Any:
-         """Stream chat response with a delay after InternalServerError."""
-         try:
-             return self.model.stream(messages, stop=stop, callbacks=run_manager, **kwargs)
-         except (InternalServerError, ResourceExhausted) as e:
-             print(f"API error encountered: {e}. Sleeping for 60 seconds before re-raising.")
-             time.sleep(60) # Sleep for 1 minute
-             raise e # Re-raise the exception
+        """Stream chat response with a delay after InternalServerError."""
+        try:
+            return self.model._stream(messages, stop=stop, run_manager=run_manager, **kwargs)
+        except GoogleAPICallError as e:
+            if 'retry_daly' not in e.message:
+                raise e
+            print(f"API error encountered: {e.message[:40]}. Sleeping for 60 seconds before re-raising.")
+            time.sleep(60) # Sleep for 1 minute
+            if count >= 3:
+                raise e
+            return self._stream(
+            messages, 
+            stop=stop, 
+            run_manager=run_manager, 
+            count=count+1,
+            **kwargs
+            )
 
 
     @property

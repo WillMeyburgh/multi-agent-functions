@@ -2,7 +2,7 @@ import yaml
 from abc import ABC, abstractmethod
 from typing import Dict
 from multi_agent_functions.v2.agent.state import AgentState
-
+from langchain_core.messages import SystemMessage
 
 class BaseAgent:
     def __init__(self, name: str, system_prompt: str):
@@ -13,7 +13,14 @@ class BaseAgent:
         self.model = model
     
     def invoke(self, state: AgentState) -> AgentState:
-        return self.model.invoke(state)
+        messages = [
+            SystemMessage(self.system_prompt)
+        ] + state['messages']
+
+        response = self.model.invoke(messages)
+        state['messages'].append(response)
+        return state
+
 
     @classmethod
     def create_agent(cls, name: str, system_prompt: str) -> "BaseAgent":

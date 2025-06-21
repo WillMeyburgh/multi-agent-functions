@@ -1,4 +1,5 @@
 from ast import List
+import time
 from typing import Generic, Hashable, Literal, TypeVar
 
 from pydantic import BaseModel, Field
@@ -15,7 +16,7 @@ class Supervisor(BaseModel):
         description="Select the next worker: 'enhancer' (enhances request and breaks into steps), 'google_tasks' (manages Google Tasks), 'google_calendar' (manages Google Calendar), or '__end__' (user query complete)."
     )
     reason: str = Field(
-        description="The reason for the decision. When 'next' is '__end__', this field should contain the final message to the user (e.g., a summary, a question for more info, or a simple response)."
+        description="The reason for the decision. When 'next' is '__end__', this field should contain the final message to the user (e.g., a summary, a question for more info, or a simple response). When 'next' is not '__end__', this field should contain a detailed description of the work the next worker should do."
     )
 
 class SupervisorGraph:
@@ -36,6 +37,11 @@ class SupervisorGraph:
             ] + state['messages']
         )
 
+        # If delegating to the enhancer, include the original user's request in the reason
+        if result.next == 'enhancer' and state['messages']:
+            original_user_request = state['messages'][0].content
+            result.reason = f"Original user request: '{original_user_request}'.\n\n{result.reason}"
+
         return Command(
             update={
                 'messages': [
@@ -47,9 +53,19 @@ class SupervisorGraph:
 
     def agent_node(self, agent: str):
         def inner(state: AgentState) -> Command[Literal['supervisor']]:
-            result = self.agents[agent].invoke({
-                'messages': [state['messages'][-1]]
-            })
+            print('======================')
+            print('supervisor:', state['messages'][-1].content)
+
+            result = self.agents[agent].invoke(
+                {
+                    'messages': [state['messages'][-1]]
+                }
+            )
+            # if agent == 'google_calendar':
+            #     print(result['messages'])
+            print(f'{agent} ({len(result["messages"])}):',result['messages'][-1].content)
+            print('======================')
+            time.sleep(10)
 
             return Command(
                 update={

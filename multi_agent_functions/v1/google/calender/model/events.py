@@ -1,7 +1,6 @@
 from dataclasses import dataclass, field, asdict
 from datetime import datetime, date
 from typing import List, Optional, Dict, Any
-
 def _parse_datetime(dt_str: Optional[str]) -> Optional[datetime]:
     if dt_str:
         try:
@@ -133,7 +132,26 @@ class EventDateTime:
         """
         result = asdict(self)
         if self.date_time:
-            result['dateTime'] = self.date_time.isoformat()
+            # Ensure timezone is included in the ISO format if available
+            if self.time_zone:
+                # For naive datetimes, assume the specified time_zone
+                # For aware datetimes, convert to the specified time_zone
+                try:
+                    from pytz import timezone
+                    tz = timezone(self.time_zone)
+                    if self.date_time.tzinfo is None: # Naive datetime
+                        aware_datetime = tz.localize(self.date_time)
+                    else: # Aware datetime
+                        aware_datetime = self.date_time.astimezone(tz)
+                    result['dateTime'] = aware_datetime.isoformat()
+                except ImportError:
+                    # Fallback if pytz is not installed, or if time_zone is invalid
+                    result['dateTime'] = self.date_time.isoformat() + (self.time_zone if self.time_zone else '')
+                except Exception:
+                    # Generic fallback for other issues
+                    result['dateTime'] = self.date_time.isoformat()
+            else:
+                result['dateTime'] = self.date_time.isoformat()
         if self.date:
             result['date'] = self.date.isoformat()
         return result
@@ -1028,43 +1046,138 @@ class Event:
         Converts the Event object to a dictionary.
 
         Returns:
-            Dict[str, Any]: A dictionary representation of the Event object.
+            Dict[str, Any]: A dictionary representation of the Event object with keys
+                            formatted as camelCase, suitable for the Google Calendar API.
+            The dictionary includes the following keys:
+                - 'kind' (str, optional): Type of the resource. Always "calendar#event".
+                - 'etag' (str, optional): ETag of the resource.
+                - 'id' (str, optional): Opaque identifier of the event.
+                - 'status' (str, optional): Status of the event. Can be "confirmed", "tentative", or "cancelled".
+                - 'htmlLink' (str, optional): An absolute link to the Google Calendar Web UI.
+                - 'created' (str, optional): Creation time of the event (RFC3339 timestamp).
+                - 'updated' (str, optional): Last modification time of the event (RFC3339 timestamp).
+                - 'summary' (str, optional): Title of the event.
+                - 'description' (str, optional): Description of the event.
+                - 'location' (str, optional): Geographic location of the event.
+                - 'colorId' (str, optional): The color of the event.
+                - 'creator' (Dict[str, Any], optional): The creator of the event.
+                - 'organizer' (Dict[str, Any], optional): The organizer of the event.
+                - 'start' (Dict[str, Any], optional): The start time of the event.
+                - 'end' (Dict[str, Any], optional): The end time of the event.
+                - 'endTimeUnspecified' (bool, optional): Whether the end time is unspecified.
+                - 'recurrence' (List[str], optional): List of RRULE, RDATE, EXRULE, or EXDATE strings.
+                - 'recurringEventId' (str, optional): For an instance of a recurring event, this is the id of the recurring event master.
+                - 'originalStartTime' (Dict[str, Any], optional): For an instance of a recurring event, this is the time at which this event would start according to the recurrence rule.
+                - 'transparency' (str, optional): Whether the event blocks time on the calendar. Can be "opaque" or "transparent".
+                - 'visibility' (str, optional): Visibility of the event. Can be "default", "public", "private", or "confidential".
+                - 'iCalUID' (str, optional): Opaque calendar unique ID.
+                - 'sequence' (int, optional): Sequence number as per iCalendar.
+                - 'attendees' (List[Dict[str, Any]], optional): The attendees of the event.
+                - 'attendeesOmitted' (bool, optional): Whether the list of attendees is omitted.
+                - 'extendedProperties' (Dict[str, Any], optional): Extended properties of the event.
+                - 'hangoutLink' (str, optional): The URL of the hangout.
+                - 'conferenceData' (Dict[str, Any], optional): The conference data for the event.
+                - 'gadget' (Dict[str, Any], optional): A gadget that extends the event.
+                - 'anyoneCanAddSelf' (bool, optional): Whether anyone can add themselves to the event.
+                - 'guestsCanInviteOthers' (bool, optional): Whether guests can invite other guests.
+                - 'guestsCanModify' (bool, optional): Whether guests can modify the event.
+                - 'guestsCanSeeOtherGuests' (bool, optional): Whether guests can see other guests.
+                - 'privateCopy' (bool, optional): Whether this is a private copy of a public event.
+                - 'locked' (bool, optional): Whether the event is locked.
+                - 'reminders' (Dict[str, Any], optional): Information about the event's reminders.
+                - 'source' (Dict[str, Any], optional): Source from which the event was created.
+                - 'workingLocationProperties' (Dict[str, Any], optional): Working location properties.
+                - 'outOfOfficeProperties' (Dict[str, Any], optional): Out of office properties.
+                - 'focusTimeProperties' (Dict[str, Any], optional): Focus time properties.
+                - 'attachments' (List[Dict[str, Any]], optional): Attachments for the event.
+                - 'birthdayProperties' (Dict[str, Any], optional): Birthday properties.
+                - 'eventType' (str, optional): The type of the event.
         """
-        result = asdict(self)
-        if self.created:
+        result = {}
+        if self.kind is not None:
+            result['kind'] = self.kind
+        if self.etag is not None:
+            result['etag'] = self.etag
+        if self.id is not None:
+            result['id'] = self.id
+        if self.status is not None:
+            result['status'] = self.status
+        if self.html_link is not None:
+            result['htmlLink'] = self.html_link
+        if self.created is not None:
             result['created'] = self.created.isoformat()
-        if self.updated:
+        if self.updated is not None:
             result['updated'] = self.updated.isoformat()
-        if self.start:
-            result['start'] = self.start.to_dict()
-        if self.end:
-            result['end'] = self.end.to_dict()
-        if self.original_start_time:
-            result['originalStartTime'] = self.original_start_time.to_dict()
-        if self.creator:
+        if self.summary is not None:
+            result['summary'] = self.summary
+        if self.description is not None:
+            result['description'] = self.description
+        if self.location is not None:
+            result['location'] = self.location
+        if self.color_id is not None:
+            result['colorId'] = self.color_id
+        if self.creator is not None:
             result['creator'] = self.creator.to_dict()
-        if self.organizer:
+        if self.organizer is not None:
             result['organizer'] = self.organizer.to_dict()
+        if self.start is not None:
+            result['start'] = self.start.to_dict()
+        if self.end is not None:
+            result['end'] = self.end.to_dict()
+        if self.end_time_unspecified is not None:
+            result['endTimeUnspecified'] = self.end_time_unspecified
+        if self.recurrence:
+            result['recurrence'] = self.recurrence
+        if self.recurring_event_id is not None:
+            result['recurringEventId'] = self.recurring_event_id
+        if self.original_start_time is not None:
+            result['originalStartTime'] = self.original_start_time.to_dict()
+        if self.transparency is not None:
+            result['transparency'] = self.transparency
+        if self.visibility is not None:
+            result['visibility'] = self.visibility
+        if self.i_cal_uid is not None:
+            result['iCalUID'] = self.i_cal_uid
+        if self.sequence is not None:
+            result['sequence'] = self.sequence
         if self.attendees:
             result['attendees'] = [att.to_dict() for att in self.attendees]
-        if self.extended_properties:
+        if self.attendees_omitted is not None:
+            result['attendeesOmitted'] = self.attendees_omitted
+        if self.extended_properties is not None:
             result['extendedProperties'] = self.extended_properties.to_dict()
-        if self.conference_data:
+        if self.hangout_link is not None:
+            result['hangoutLink'] = self.hangout_link
+        if self.conference_data is not None:
             result['conferenceData'] = self.conference_data.to_dict()
-        if self.gadget:
+        if self.gadget is not None:
             result['gadget'] = self.gadget.to_dict()
-        if self.reminders:
+        if self.anyone_can_add_self is not None:
+            result['anyoneCanAddSelf'] = self.anyone_can_add_self
+        if self.guests_can_invite_others is not None:
+            result['guestsCanInviteOthers'] = self.guests_can_invite_others
+        if self.guests_can_modify is not None:
+            result['guestsCanModify'] = self.guests_can_modify
+        if self.guests_can_see_other_guests is not None:
+            result['guestsCanSeeOtherGuests'] = self.guests_can_see_other_guests
+        if self.private_copy is not None:
+            result['privateCopy'] = self.private_copy
+        if self.locked is not None:
+            result['locked'] = self.locked
+        if self.reminders is not None:
             result['reminders'] = self.reminders.to_dict()
-        if self.source:
+        if self.source is not None:
             result['source'] = self.source.to_dict()
-        if self.working_location_properties:
+        if self.working_location_properties is not None:
             result['workingLocationProperties'] = self.working_location_properties.to_dict()
-        if self.out_of_office_properties:
+        if self.out_of_office_properties is not None:
             result['outOfOfficeProperties'] = self.out_of_office_properties.to_dict()
-        if self.focus_time_properties:
+        if self.focus_time_properties is not None:
             result['focusTimeProperties'] = self.focus_time_properties.to_dict()
         if self.attachments:
             result['attachments'] = [att.to_dict() for att in self.attachments]
-        if self.birthday_properties:
+        if self.birthday_properties is not None:
             result['birthdayProperties'] = self.birthday_properties.to_dict()
+        if self.event_type is not None:
+            result['eventType'] = self.event_type
         return result

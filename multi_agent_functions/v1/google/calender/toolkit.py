@@ -11,25 +11,11 @@ class GoogleCalendarToolkit:
     def __init__(self):
         self.client = GoogleCalendarClient()
 
-    def calendar_list_list(self, state: GoogleCalendarAgentState) -> GoogleCalendarAgentState:
-        """
-        Lists all available calendars and updates the agent's state with the retrieved calendars.
-
-        Args:
-            state (GoogleCalendarAgentState): The current state of the agent, which includes
-                                           a list of calendars to be updated.
-
-        Returns:
-            GoogleCalendarAgentState: The updated state of the agent with the 'calendars' field populated.
-        """
-        state['calendars'] = self.client.calendar_list_list()
-        return state
-
     def get_current_time(self) -> str:
         """
-        Returns the current date and time.
+        Returns the current date and time with timezone information.
         """
-        return datetime.now().isoformat()
+        return datetime.now().astimezone().isoformat()
 
     def get_tools(self) -> List[BaseTool]:
         return list(map(
@@ -40,7 +26,7 @@ class GoogleCalendarToolkit:
                 CalendarListEntry.from_dict,
                 Event.to_dict,
                 CalendarListEntry.to_dict,
-                self.calendar_list_list,
+                self.client.calendar_list_list,
                 self.client.calendar_list_delete,
                 self.client.calendar_list_get,
                 self.client.calendar_list_insert,

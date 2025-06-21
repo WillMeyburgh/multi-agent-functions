@@ -29,7 +29,7 @@ i = 0
 could you create a event for tomorrow 9 am with title warframes with all the tasks in my warframe tasklist as summary
 """
 
-state['messages'].append(HumanMessage('could you create a event for tomorrow 9am with title warframes with all the tasks in my warframe tasklist as summary'))
+state['messages'].append(HumanMessage('could you create a event for tomorrow 9 am with title warframes with all the tasks in my warframe tasklist as summary'))
 
 while True:
     # state['messages'].append(HumanMessage(input("User: ")))
